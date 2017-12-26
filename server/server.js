@@ -6,7 +6,7 @@ const{Todo}= require('./models/todo');
 const{users}= require('./models/users');
 const{ObjectID}= require('mongodb');
 
-const port = process.env.PORT || 3000;
+const port =  process.env.PORT || 3000;
 
 var app = express();
 app.use(bodyParse.json());
@@ -41,7 +41,9 @@ app.get('/todos/:id', (req,res)=>{
 } else {
             res.status(200).send({todo});
 }
-    }).catch((e)=>{
+    },(e)=>{
+    res.status(400).send();
+}).catch((e)=>{
     res.status(400).send();
 });
 });
