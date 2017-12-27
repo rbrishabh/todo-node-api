@@ -4,7 +4,7 @@ const {ObjectID} = require('mongodb')
 var {Todo} = require('./../models/todo');
 var {app} = require("./../server");
 
-const text1 = [{_id: new ObjectID, text: "Test1 todo"}, {_id:new ObjectID, text: "test2 todo"}];
+const text1 = [{_id: new ObjectID, text: "Test1 todo"}, {_id:new ObjectID, text: "test2 todo", completed:true, completedOn: 333}];
 
 beforeEach((done)=>{
     Todo.remove({}).then(()=>{
@@ -130,4 +130,33 @@ request(app)
     .end(done);
 })
 
+});
+
+describe('PATCH /todos/:id', ()=>{
+    it('should update the todo', (done)=>{
+        var id = text1[0]._id.toHexString();
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({text:"oh yeah number", completed:true})
+            .expect(200)
+            .expect((res)=>{
+                expect(res.body.todo.text).toBe("oh yeah number");
+                expect(res.body.todo.completed).toBe(true);
+                expect(res.body.todo.completedOn).toBeA('number');
+                })
+            .end(done);
+});
+
+    it('should make todo incompleted and also update it and all', (done)=>{
+        var id = text1[1]._id.toHexString();
+        request(app)
+            .patch(`/todos/${id}`)
+            .send({text:'yo', completed:false})
+            .expect(200)
+            .expect((res)=>{
+                expect(res.body.todo.text).toBe('yo');
+                expect(res.body.todo.completed).toBe(false);
+                expect(res.body.todo.completedOn).toNotExist();
+        }).end(done);
+    });
 });
