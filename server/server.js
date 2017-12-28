@@ -7,7 +7,7 @@ const _ = require('lodash');
 
 const {mongoose} = require('./db/mongoose');
 const{Todo}= require('./models/todo');
-const{users}= require('./models/users');
+const{Users}= require('./models/users');
 const{ObjectID}= require('mongodb');
 const time = new Date().getTime();
 
@@ -94,6 +94,16 @@ else{
 res.status(200).send({todo});
  }).catch((e)=>{
      res.status(400).send();
+});
+});
+
+app.post('/users',(req,res)=>{
+    var body = _.pick(req.body, ['email', 'password']);
+    var user1 = new Users(body);
+    user1.save().then((doc)=>{
+        res.status(200).send(doc);
+    }, (e)=>{
+        res.status(400).send(e);
 });
 });
 
