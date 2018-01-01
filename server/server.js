@@ -4,6 +4,7 @@ require('./config/config');
 const express = require('express');
 const bodyParse= require('body-parser');
 const _ = require('lodash');
+const jwt = require('jsonwebtoken');
 
 const {mongoose} = require('./db/mongoose');
 const{Todo}= require('./models/todo');
@@ -100,10 +101,12 @@ res.status(200).send({todo});
 app.post('/users',(req,res)=>{
     var body = _.pick(req.body, ['email', 'password']);
     var user1 = new Users(body);
-    user1.save().then((doc)=>{
-        res.status(200).send(doc);
+    user1.save().then(()=>{
+       return user.generateAuthToken();
     }, (e)=>{
         res.status(400).send(e);
+}).then((token)=>{
+    res.header('x-auth', token).send(user1);
 });
 });
 
