@@ -117,10 +117,12 @@ app.get('/users/me', (req,res)=>{
    var token = req.header('x-auth');
    Users.findByToken(token).then((user)=>{
        if(!user) {
-
+           return Promise.reject();
 }
 res.send(user);
-});
+}).catch((e)=>{
+    res.status(401).send(e);
+})
 });
 
 app.listen(port, ()=>{
