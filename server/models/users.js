@@ -32,23 +32,46 @@ var userSchema = new mongoose.Schema({
     }]
 });
 
-var Users = mongoose.model('Users', userSchema);
 
 userSchema.methods.toJSON = function () {
     var user = this;
     var userObject = user.toObject();
-    return _.pick(userObject, ['._id', 'email']);
-}
-userSchema.methods.generateAuthToken = fucntion () {
+    return _.pick(userObject, ['_id', 'email']);
+};
+
+userSchema.methods.generateAuthToken = function () {
     var user = this;
     var access = 'auth';
     var token = jwt.sign({_id: user._id.toHexString(), access}, 'ohyeah').toString();
-    user.token.push({access,token});
 
-    user.save().then(()=>{
+    user.tokens.push({access, token});
+
+    return user.save().then(() => {
         return token;
-    });
+});
 };
+
+userSchema.statics.findByToken = function (token) {
+    var Users = this;
+    var decoded;
+
+
+    try {
+        decoded = jwt.verify(token, 'ohyeah');
+
+    } catch (e) {
+
+
+    }
+return Users.findOne({
+    '_id' : decoded._id,
+    'tokens.token' : token,
+    'tokens.access' : 'auth'
+});
+
+
+};
+
 //
 // var user1= new user({
 //     email: "       ok  "
@@ -59,5 +82,6 @@ userSchema.methods.generateAuthToken = fucntion () {
 // },(e)=>{
 //     console.log("cannot save user",e);
 // });
+var Users = mongoose.model('Users', userSchema);
 
 module.exports = {Users};

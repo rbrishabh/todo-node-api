@@ -98,19 +98,30 @@ res.status(200).send({todo});
 });
 });
 
-app.post('/users',(req,res)=>{
+
+app.post('/users', (req, res) => {
     var body = _.pick(req.body, ['email', 'password']);
-    var user1 = new Users(body);
-    user1.save().then(()=>{
-       return user.generateAuthToken();
-    }, (e)=>{
-        res.status(400).send(e);
-}).then((token)=>{
-    res.header('x-auth', token).send(user1);
-});
+var user = new Users(body);
+
+user.save().then(() => {
+    return user.generateAuthToken();
+}).then((token) => {
+    res.header('x-auth', token).send(user);
+}).catch((e) => {
+    res.status(400).send(e);
+})
 });
 
 
+app.get('/users/me', (req,res)=>{
+   var token = req.header('x-auth');
+   Users.findByToken(token).then((user)=>{
+       if(!user) {
+
+}
+res.send(user);
+});
+});
 
 app.listen(port, ()=>{
     console.log(`server is up on ${port}`);
