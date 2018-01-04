@@ -2,15 +2,12 @@ const request = require('supertest');
 const expect = require('expect');
 const {ObjectID} = require('mongodb')
 var {Todo} = require('./../models/todo');
+const {text1, populateTodos, users, populateUsers} = require('./seed/seed');
 var {app} = require("./../server");
 
-const text1 = [{_id: new ObjectID, text: "Test1 todo"}, {_id:new ObjectID, text: "test2 todo", completed:true, completedOn: 333}];
 
-beforeEach((done)=>{
-    Todo.remove({}).then(()=>{
-        Todo.insertMany(text1).then(()=>done());
-});
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', ()=> {
    it('should create a new todo', (done)=>{
@@ -159,4 +156,26 @@ describe('PATCH /todos/:id', ()=>{
                 expect(res.body.todo.completedOn).toNotExist();
         }).end(done);
     });
+});
+
+describe('GET /users/me', ()=>{
+   it('should return the user object when auth token sent', (done)=>{
+       request(app)
+           .get('/users/me')
+           .set('x-auth', users[0].tokens[0].token)
+           .expect(200)
+           .expect((res)=>{
+               expect(res.body._id).toBe(users[0]._id.toString());
+               expect(res.body.email).toBe(users[0].email);
+       }).end(done);
+});
+
+   it('should return no user when auth id token not sent', (done)=>{
+       request(app)
+       .get('/users/me')
+       .expect(401)
+       .expect((res)=>{
+           expect(res.body).toEqual({});
+   }).end(done);
+   });
 });
