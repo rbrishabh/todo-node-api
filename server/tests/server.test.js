@@ -4,6 +4,7 @@ const {ObjectID} = require('mongodb')
 var {Todo} = require('./../models/todo');
 const {text1, populateTodos, users, populateUsers} = require('./seed/seed');
 var {app} = require("./../server");
+const{Users}= require('./../models/users');
 
 
 beforeEach(populateUsers);
@@ -177,5 +178,54 @@ describe('GET /users/me', ()=>{
        .expect((res)=>{
            expect(res.body).toEqual({});
    }).end(done);
+   });
+});
+
+describe('POST /users', ()=>{
+   it('should add a new user', (done)=>{
+       var email = 'a@b.com';
+       var password = 'qwewqwe';
+
+       request(app)
+           .post('/users')
+           .send({email, password})
+           .expect(200)
+           .expect((res)=>{
+               expect(res.header['x-auth']).toExist();
+               expect(res.body._id).toExist();
+               expect(res.body.email).toBe(email);
+       }).end((err)=>{
+           if(err){
+               return done(err);
+           }
+           Users.findOne({email}).then((user)=>{
+               expect(user).toExist();
+               expect(user.password).toNotBe(password);
+               done();
+    });
+    });
+
+   });
+
+   it('shouldnt add user as data invalid', (done)=>{
+       var email = "1";
+       var password = "1";
+       request(app)
+           .post('/users')
+           .send({email, password})
+           .expect(400)
+           .end(done);
+   });
+
+   it('shouldnt add user as email same', (done)=>{
+       var email = "oho@oho.com"
+       var password = 'sadasda';
+       request(app)
+           .post('/users')
+           .send({email, password})
+           .expect(400)
+           .end(done);
+
+
    });
 });
