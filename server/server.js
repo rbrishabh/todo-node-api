@@ -134,6 +134,15 @@ Users.findByCredentials(email, password).then((user) => {
 
 });
 
+app.delete('/users/me/token', authenticate, (req,res)=>{
+    req.user.deleteToken(req.token).then(()=>{
+        res.status(200).send();
+},()=>{
+        res.status(400).send();
+});
+});
+
+
 
 
 

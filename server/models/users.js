@@ -49,6 +49,17 @@ return user.save().then(()=>{
 });
 };
 
+userSchema.methods.deleteToken = function (token) {
+    var user = this;
+    return user.update({
+        $pull:{
+            tokens:{token}
+        }
+    });
+
+};
+
+
 userSchema.statics.findByCredentials = function (email , password) {
 var Users = this;
     return Users.findOne({email}).then((user)=>{
