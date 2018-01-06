@@ -229,3 +229,54 @@ describe('POST /users', ()=>{
 
    });
 });
+
+describe('POST /users/login',()=>{
+
+    var email = users[0].email;
+var password = users[0].password;
+
+   it('should return x-auth when valid email and password sent', (done)=>{
+       request(app)
+           .post('/users/login')
+           .send({email, password})
+       .expect(200)
+       .expect((res)=>{
+           expect(res.headers['x-auth']).toExist();
+           expect(res.body.password).toNotBe(password);
+
+   }).end((err,res)=>{
+       if(err){
+           return done(err);
+       }
+       Users.findById(users[0]._id).then((o)=>{
+        expect(o.tokens[0].access).toBe('auth');
+        done();
+}).catch((e)=>done(e));
+});
+
+   });
+
+   it('should reject invalid login', (done)=> {
+       var email = 'oho@oho.com';
+       var password = '122';
+       request(app)
+           .post('/users/login')
+           .send({email, password})
+               .expect(400)
+           .expect((res)=>{
+           expect(res.headers['x-auth']).toNotExist();
+
+
+}).end((err,res)=>{
+    if(err){
+        done(err)
+    }
+    Users.findById(users[1]._id).then((user)=>{
+        expect(user.tokens.length).toBe(0);
+        done();
+}).catch((e)=>done(e));
+});
+
+});
+
+   });
