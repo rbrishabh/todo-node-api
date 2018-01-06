@@ -17,6 +17,7 @@ describe('POST /todos', ()=> {
 
    request(app)
        .post('/todos')
+       .set('x-auth', users[0].tokens[0].token)
            .send({text})
            .expect(200)
            .expect((res)=>{
@@ -40,6 +41,7 @@ describe('POST /todos', ()=> {
    it('should not add todo with invalid body data', (done)=>{
         request(app)
        .post('/todos')
+       .set('x-auth', users[0].tokens[0].token)
        .send({})
        .expect(400)
        .end((err,res)=>{
@@ -58,9 +60,10 @@ describe('GET /todo tests', ()=>{
     it('should get all todos', (done)=>{
         request(app)
             .get('/todos')
+            .set('x-auth', users[0].tokens[0].token)
             .expect(200)
             .expect((res)=>{
-                expect(res.body.todos.length).toBe(2);
+                expect(res.body.todos.length).toBe(1);
         }).end(done);
 });
 });
@@ -69,6 +72,7 @@ describe('GET /todos/id', ()=>{
 it('should return 200 and find the todo of given id', (done)=>{
     request(app)
         .get(`/todos/${text1[0]._id}`)
+        .set('x-auth', users[0].tokens[0].token)
         .expect(200)
         .expect((res)=>{
             expect(res.body.todo.text).toBe(text1[0].text);
@@ -76,9 +80,18 @@ it('should return 200 and find the todo of given id', (done)=>{
   .end(done);
 });
 
+it('should not return 200 and find the todo of given id when user not authorised', (done)=>{
+    request(app)
+    .get(`/todos/${text1[0]._id}`)
+    .set('x-auth', users[1].tokens[0].token)
+    .expect(404)
+    .end(done);
+});
+
 it('should return 404 when id is not found ', (done)=>{
     request(app)
     .get(`/todos/${new ObjectID}`)
+    .set('x-auth', users[0].tokens[0].token)
     .expect(404)
     .end(done);
 });
@@ -86,6 +99,7 @@ it('should return 404 when id is not found ', (done)=>{
 it('should return 404 when invalid id is entered',(done)=>{
     request(app)
     .get('/todos/123')
+    .set('x-auth', users[0].tokens[0].token)
     .expect(404)
     .end(done);
 });
@@ -96,6 +110,7 @@ describe('DELETE /todos/id',()=>{
 
     request(app)
         .delete(`/todos/${id}`)
+        .set('x-auth', users[1].tokens[0].token)
         .expect(200)
         .expect((res)=>{
         expect(res.body.todo._id).toBe(id);
@@ -111,10 +126,30 @@ describe('DELETE /todos/id',()=>{
 });
 });
 
+it('shouldnt remove the todo as user not authorised',(done)=>{
+    var id = text1[1]._id.toHexString();
+
+request(app)
+    .delete(`/todos/${id}`)
+    .set('x-auth', users[0].tokens[0].token)
+
+    .expect(404)
+    .end((err,res)=>{
+    if(err){
+        return done(err);
+    }
+    Todo.findById(id).then((todo)=>{
+    expect(todo).toExist();
+done();
+}).catch((e)=>done(e));
+});
+});
+
 
 it('should return 404 cuz of invalid id', (done)=>{
     request(app)
     .delete("/todos/123")
+    .set('x-auth', users[0].tokens[0].token)
     .expect(404)
     .end(done)
 });
@@ -123,8 +158,8 @@ it('should return 404 cuz todo with that id does not exist', (done)=>{
     var id = new ObjectID;
 request(app)
     .delete(`/todos/${id}`)
+    .set('x-auth', users[0].tokens[0].token)
     .expect(404)
-
     .end(done);
 })
 
@@ -136,6 +171,7 @@ describe('PATCH /todos/:id', ()=>{
         request(app)
             .patch(`/todos/${id}`)
             .send({text:"oh yeah number", completed:true})
+            .set('x-auth', users[0].tokens[0].token)
             .expect(200)
             .expect((res)=>{
                 expect(res.body.todo.text).toBe("oh yeah number");
@@ -145,11 +181,24 @@ describe('PATCH /todos/:id', ()=>{
             .end(done);
 });
 
+it('shouldnt update the todo as user unauthorised', (done)=>{
+    var id = text1[0]._id.toHexString();
+request(app)
+    .patch(`/todos/${id}`)
+    .send({text:"oh yeah number", completed:true})
+    .set('x-auth', users[1].tokens[0].token)
+    .expect(400)
+    .end(done);
+});
+
+
+
     it('should make todo incompleted and also update it and all', (done)=>{
         var id = text1[1]._id.toHexString();
         request(app)
             .patch(`/todos/${id}`)
             .send({text:'yo', completed:false})
+            .set('x-auth', users[1].tokens[0].token)
             .expect(200)
             .expect((res)=>{
                 expect(res.body.todo.text).toBe('yo');
@@ -272,7 +321,7 @@ var password = users[0].password;
         done(err)
     }
     Users.findById(users[1]._id).then((user)=>{
-        expect(user.tokens.length).toBe(0);
+        expect(user.tokens.length).toBe(1);
         done();
 }).catch((e)=>done(e));
 });
