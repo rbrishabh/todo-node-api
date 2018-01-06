@@ -202,7 +202,7 @@ describe('POST /users', ()=>{
                expect(user).toExist();
                expect(user.password).toNotBe(password);
                done();
-    });
+    }).catch((e)=>done(e));
     });
 
    });
@@ -257,7 +257,7 @@ var password = users[0].password;
    });
 
    it('should reject invalid login', (done)=> {
-       var email = 'oho@oho.com';
+       var email = 'aha@aha.com';
        var password = '122';
        request(app)
            .post('/users/login')
@@ -280,3 +280,23 @@ var password = users[0].password;
 });
 
    });
+
+describe('DELETE /users/me/token', ()=>{
+    it('should log out when valid token passed, i.e. should delete token', (done)=>{
+        var token = users[0].tokens[0].token;
+        var email = users[0].email;
+        request(app)
+            .delete('/users/me/token')
+            .set('x-auth', token)
+            .expect(200)
+            .end((err,res)=>{
+                if(err) {
+                   return done(err)
+                }
+                Users.findOne({email}).then((user)=>{
+                    expect(user.tokens.length).toBe(0);
+                    done();
+        }).catch((e)=>done(e));
+        });
+});
+});
