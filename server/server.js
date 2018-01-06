@@ -120,31 +120,21 @@ app.get('/users/me', authenticate, (req,res)=>{
 });
 
 
-app.post('/users/login',(req,response)=>{
-   var body = _.pick(req.body, ['email', 'password']);
-   var email = body.email;
-   var password = body.password;
-
-   Users.findOne({email}).then((user)=>{
-       if(!user){
-           return response.status(404).send();
-}
-  var hashedPass = user.password;
-  bcrypt.compare(password,hashedPass,(err,res)=>{
-     if(!res){
-         return response.status(401).send();
-}
-user.generateAuthToken().then((token)=>{
+app.post('/users/login',(req,response)=> {
+    var body = _.pick(req.body, ['email', 'password']);
+var email = body.email;
+var password = body.password;
+Users.findByCredentials(email, password).then((user) => {
+    return user.generateAuthToken().then((token) => {
     response.status(200).header('x-auth', token).send(user);
 });
-
-  });
-
-
-
+}).catch((e) => {
+    response.status(400).send();
+});
 
 });
-});
+
+
 
 
 app.listen(port, ()=>{
