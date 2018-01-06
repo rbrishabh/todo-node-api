@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParse= require('body-parser');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const {mongoose} = require('./db/mongoose');
 const{Todo}= require('./models/todo');
@@ -117,6 +118,34 @@ user.save().then(() => {
 app.get('/users/me', authenticate, (req,res)=>{
   res.send(req.user);
 });
+
+
+app.post('/users/login',(req,response)=>{
+   var body = _.pick(req.body, ['email', 'password']);
+   var email = body.email;
+   var password = body.password;
+
+   Users.findOne({email}).then((user)=>{
+       if(!user){
+           return response.status(404).send();
+}
+  var hashedPass = user.password;
+  bcrypt.compare(password,hashedPass,(err,res)=>{
+     if(!res){
+         return response.status(401).send();
+}
+user.generateAuthToken().then((token)=>{
+    response.status(200).header('x-auth', token).send(user);
+});
+
+  });
+
+
+
+
+});
+});
+
 
 app.listen(port, ()=>{
     console.log(`server is up on ${port}`);
