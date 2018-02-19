@@ -1,6 +1,7 @@
 # todo-node-api
-# Creating todo app using node.
-Use api usong postman.
+ Creating todo app using node.
+
+# Use api usong Postman.
 
 
 # Make requests at https://secure-citadel-23147.herokuapp.com/todos,
@@ -30,7 +31,7 @@ To read your current todos, send a GET request from postman to https://secure-ci
 
 To update a todo, send the data of text or completedAt with x-auth token as a PATCH request in postman to https://secure-citadel-23147.herokuapp.com/todos/`${id}`
 
-#Remove Todo
+# Remove Todo
 
 To remove a todo, send a DELETE request form postman to https://secure-citadel-23147.herokuapp.com/todos/`${id}` with your x-auth token as header. Todo will be removed.
 
